@@ -1,9 +1,14 @@
+from __future__ import division
 import cPickle as cP
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy_utils import create_database, database_exists
 from modelsDB import Prediction, PredictionSchema, Base
+import numpy as np
+from ServiceRegressor import ServiceRegressor
 
+ServiceRegressor = ServiceRegressor()
+# Initialise database connection and app
 # trying to avoid saving the password in plain text
 with open('proj.conf') as f:
    config = cP.load(f)
@@ -21,4 +26,5 @@ Base.metadata.create_all(db.engine)
 
 if __name__ == '__main__':
     # debug=True should only be used during development
-    app.run(debug=True)
+    #app.run(debug=True)
+    ServiceRegressor.fit('data/avocadoCleanedTrain.csv')
