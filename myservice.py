@@ -1,3 +1,9 @@
+import cPickle as cP
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy_utils import create_database, database_exists
+from modelsDB import Prediction, PredictionSchema, Base
+
 # trying to avoid saving the password in plain text
 with open('proj.conf') as f:
    config = cP.load(f)

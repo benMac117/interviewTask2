@@ -1,3 +1,7 @@
+from sqlalchemy import Table, Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+import flask_marshmallow
+
 Base = declarative_base()
 
 # class for the recipe model
