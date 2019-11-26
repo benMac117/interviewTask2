@@ -6,6 +6,7 @@ from sqlalchemy_utils import create_database, database_exists
 from modelsDB import Prediction, PredictionSchema, Base
 import numpy as np
 from ServiceRegressor import ServiceRegressor
+import requests
 
 ServiceRegressor = ServiceRegressor()
 # Initialise database connection and app
@@ -24,14 +25,13 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 Base.metadata.create_all(db.engine)
 
-with app.app_context():
-    predictionSchema = PredictionSchema(strict=True)
-    predictionsSchema = PredictionSchema(strict=True, many=True)
+predictionSchema = PredictionSchema(strict=True)
+predictionsSchema = PredictionSchema(strict=True, many=True)
 
-# Get single recipe
+# Not sure if this is the most appropriate verb
 @app.route('/prediction', methods=['GET'])
-def get_prediction(inputFeatures):
-    #inputFeatures = request.json['inputFeatures']
+def get_prediction():
+    inputFeatures = np.array(request.json['inputFeatures'])
     predictedPrices = ServiceRegressor.format_and_predict(inputFeatures)
     predictions = []
     for feats, pred in zip(inputFeatures, predictedPrices):
@@ -42,11 +42,16 @@ def get_prediction(inputFeatures):
     with app.app_context():
         returnPacket = predictionsSchema.jsonify(predictions)
     return returnPacket
+    
+@app.route('/predictions', methods=['GET'])
+def get_predictions():
+    with app.app_context():
+        returnPacket = jsonify(predictionsSchema.dump(db.session.query(Prediction)))
+    return returnPacket
 
 if __name__ == '__main__':
-    # debug=True should only be used during development
-    #app.run(debug=True)
     ServiceRegressor.fit('data/avocadoCleanedTrain.csv')
+    # debug=True should only be used during development
+    app.run(debug=True)
 
-    testFeatures = np.loadtxt('data/avocadoCleanedTest.csv', delimiter=',', dtype='|S20')
-    get_prediction(testFeatures[:,1:])
+    
