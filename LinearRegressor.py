@@ -41,6 +41,7 @@ class LinearRegressor:
         # append a column of ones for the intercept feature
         # if this causes memory issues we can modify the samples variable instead
         samplesI = np.append(np.ones([len(samples),1]), samples, axis=1)
+
         del samples # delete samples from memory
         self.weights = np.ones(samplesI.shape[1]) # initialise weights to 1, may perform better with some variation
 

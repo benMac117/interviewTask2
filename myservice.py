@@ -24,7 +24,29 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 Base.metadata.create_all(db.engine)
 
+with app.app_context():
+    predictionSchema = PredictionSchema(strict=True)
+    predictionsSchema = PredictionSchema(strict=True, many=True)
+
+# Get single recipe
+@app.route('/prediction', methods=['GET'])
+def get_prediction(inputFeatures):
+    #inputFeatures = request.json['inputFeatures']
+    predictedPrices = ServiceRegressor.format_and_predict(inputFeatures)
+    predictions = []
+    for feats, pred in zip(inputFeatures, predictedPrices):
+        newPrediction = Prediction(pred, *feats)
+        predictions.append(newPrediction)
+        db.session.add(newPrediction)
+    db.session.commit()
+    with app.app_context():
+        returnPacket = predictionsSchema.jsonify(predictions)
+    return returnPacket
+
 if __name__ == '__main__':
     # debug=True should only be used during development
     #app.run(debug=True)
     ServiceRegressor.fit('data/avocadoCleanedTrain.csv')
+
+    testFeatures = np.loadtxt('data/avocadoCleanedTest.csv', delimiter=',', dtype='|S20')
+    get_prediction(testFeatures[:,1:])
